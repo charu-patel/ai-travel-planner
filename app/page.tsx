@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useState } from "react";
+import { useEffect } from "react";
 
 const MapView = dynamic(
   () => import("./components/MapView"),
@@ -16,15 +17,37 @@ export default function Home() {
     interests: "",
     budget: "",
   });
+  
 
   const [trip, setTrip] = useState<any>(null);
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState<any[]>([]);
+  const [tripName, setTripName] = useState("");
+ 
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+  useEffect(() => {
+  try {
+    const storedTrip = localStorage.getItem("activeTrip");
 
+if (storedTrip && storedTrip !== "undefined") {
+  const parsed = JSON.parse(storedTrip);
+
+  if (parsed.trip) {
+    setTrip(parsed.trip);
+    setChatHistory(parsed.chatHistory || []);
+  } else {
+    setTrip(parsed);
+  }
+
+  localStorage.removeItem("activeTrip");
+}
+  } catch (err) {
+    console.error("Trip load failed:", err);
+  }
+}, []);
   const generateTrip = async () => {
     const res = await fetch("/api/generate-itinerary", {
       method: "POST",
@@ -112,7 +135,33 @@ export default function Home() {
 
   setTrip(updatedTrip);
 };
+const saveTrip = () => {
+  if (!trip || !tripName) return;
 
+  const savedTrips =
+    JSON.parse(localStorage.getItem("savedTrips") || "[]");
+
+  const existingIndex = savedTrips.findIndex(
+    (t: any) => t.name === tripName
+  );
+
+  if (existingIndex !== -1) {
+    savedTrips[existingIndex].data = trip;
+  } else {
+    savedTrips.push({
+      id: Date.now(),
+      name: tripName,
+      data: {trip, chatHistory},
+    });
+  }
+
+  localStorage.setItem(
+    "savedTrips",
+    JSON.stringify(savedTrips)
+  );
+
+  alert("Trip saved successfully!");
+};
 
   return (
     <main className="min-h-screen bg-gray-200 px-6 py-10">
@@ -126,6 +175,13 @@ export default function Home() {
         <p className="text-gray-700 mt-2">
           Plan routes, hotels, and itineraries instantly
         </p>
+
+        <a
+  href="/dashboard"
+  className="absolute top-6 right-6 bg-blue-500 text-white px-4 py-2 rounded"
+>
+  My Trips 
+</a>
       </div>
 
 
@@ -169,8 +225,21 @@ export default function Home() {
           Generate Trip 🚀
         </button>
       </div>
-
-
+        <input
+    placeholder="Trip name (e.g. Family trip to Rishikesh)"
+    value={tripName}
+    onChange={(e) => setTripName(e.target.value)}
+    className="border rounded px-3 py-2 mt-4 w-full text-black"
+  />
+  {trip && (
+  <button
+    onClick={saveTrip}
+    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded mt-3"
+  >
+    Save Trip 💾
+  </button>
+)}
+      
       {/* MAP */}
       {trip?.startCoords && trip?.destCoords && (
         <div className="max-w-5xl mx-auto mt-10 rounded-xl overflow-hidden shadow">
