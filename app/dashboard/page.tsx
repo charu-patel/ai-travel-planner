@@ -1,28 +1,29 @@
 "use client";
 
+import { useRouter } from "next/navigation"; // ✅ Correct import for Next.js App Router
 import { useEffect, useState } from "react";
 
 export default function Dashboard() {
+  const router = useRouter(); // ✅ Initialize the router hook
   const [savedTrips, setSavedTrips] = useState<any[]>([]);
 
   useEffect(() => {
-    const trips =
-      JSON.parse(localStorage.getItem("savedTrips") || "[]");
-
+    const trips = JSON.parse(localStorage.getItem("savedTrips") || "[]");
     setSavedTrips(trips);
   }, []);
 
   const deleteTrip = (id: number) => {
-    const updatedTrips = savedTrips.filter(
-      (trip) => trip.id !== id
-    );
-
+    const updatedTrips = savedTrips.filter((trip) => trip.id !== id);
     setSavedTrips(updatedTrips);
+    localStorage.setItem("savedTrips", JSON.stringify(updatedTrips));
+  };
 
-    localStorage.setItem(
-      "savedTrips",
-      JSON.stringify(updatedTrips)
-    );
+  const handleCardClick = (clickedTrip: any) => {
+    // Save the entire root trip object (containing id, name, and data wrapper)
+    localStorage.setItem("activeTrip", JSON.stringify(clickedTrip));
+    
+    // Smooth Next.js client-side navigation back home
+    router.push("/"); 
   };
 
   return (
@@ -32,38 +33,33 @@ export default function Dashboard() {
       </h1>
 
       {savedTrips.length === 0 && (
-        <p>No saved trips yet.</p>
+        <p className="text-gray-600">No saved trips yet.</p>
       )}
 
-      {savedTrips.map((trip) => (
-        <div
-  key={trip.id}
-  className="border rounded-lg p-4 mb-4 shadow flex justify-between items-center"
->
+      <div className="space-y-4">
+        {savedTrips.map((trip) => (
+          <div
+            key={trip.id}
+            className="border rounded-lg p-4 bg-white shadow flex justify-between items-center"
+          >
+            {/* Clickable Trip Name Link */}
+            <button
+              onClick={() => handleCardClick(trip)} // ✅ Now uses your synchronized handler!
+              className="text-lg font-semibold text-blue-600 hover:underline text-left"
+            >
+              {trip.name}
+            </button>
 
-  <button
-    onClick={() => {
-      localStorage.setItem(
-        "activeTrip",
-        JSON.stringify(trip.data)
-      );
-
-      window.location.href = "/";
-    }}
-    className="text-lg font-semibold text-blue-600 hover:underline"
-  >
-    {trip.name}
-  </button>
-
-  <button
-    onClick={() => deleteTrip(trip.id)}
-    className="text-red-600"
-  >
-    Delete
-  </button>
-
-</div>
-      ))}
+            {/* Delete Button */}
+            <button
+              onClick={() => deleteTrip(trip.id)}
+              className="text-red-600 font-medium hover:text-red-800 transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        ))}
+      </div>
     </main>
   );
 }
