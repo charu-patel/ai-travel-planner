@@ -36,21 +36,21 @@ Clone the project to your local machine:
 ```bash
 git clone [https://github.com/charu-patel/ai-travel-planner.git](https://github.com/charu-patel/ai-travel-planner.git)
 cd ai-travel-planner
-
+```
 ### 2. Configure Your Environment Variables
 Create a `.env.local` file in the root of the project directory and plug in your AI provider credentials:
 
 ```env
 GROQ_API_KEY=your_groq_api_key_here
 NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token_here
-
+```
 ### 3. Install & Launch the Development Server
 Install the required node modules and run the local compiler:
 
 ```bash
 npm install
 npm run dev
-
+```
 Once initialized, open [http://localhost:3000](http://localhost:3000) in your browser to test the interactive state architecture.
 
 ---
